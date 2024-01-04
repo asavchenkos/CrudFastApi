@@ -42,3 +42,13 @@ def update(id:int, post: News, db: Session = Depends(get_db)):
         update_post.update(post.dict(), synchronize_session = False)
         db.commit()
     return update_post.first()
+
+@app.get("/get/{id}")
+def get(id:int, db:Session = Depends(get_db)):
+    solo_post = db.query(models.Post).filter(models.Post.id == id)
+    if solo_post == None:
+        raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = f"Post with id {id} not found")
+    else:
+        return solo_post.first()
+
+#TODO : Docker + Swagger
