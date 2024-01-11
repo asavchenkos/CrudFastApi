@@ -21,3 +21,10 @@ Navigate to alembic/versions/newfile
 Configure update and downgrade functions
 alembic upgrade head
 ```
+## To revert migrations:
+
+```
+alembic downgrade %revision_num%
+OR
+alembic downgrade base - To revert all migrations
+```
