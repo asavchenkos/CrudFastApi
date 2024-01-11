@@ -13,7 +13,7 @@ Create .env file with DATABASE_URL variable as a connection to your db
 python3 main.py
 ```
 
-##To run migrations:
+## To run migrations:
 
 ```
 alembic revision -m "Name of the migration"
