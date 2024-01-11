@@ -79,9 +79,11 @@ def healthcheck(db: Session = Depends(get_db)):
             "db_version": db_version
         }
     else:
-        raise HTTPException(status_code = status.HTTP_500_INTERNAL_SERVER_ERROR, detail = {
+        raise HTTPException(status_code = status.HTTP_503_SERVICE_UNAVAILABLE, detail = {
             "service_status": "up",
             "db_status": "down",
             "db_version": db_version
         })
+
+
 #TODO : Docker
