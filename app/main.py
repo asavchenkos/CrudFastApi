@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.openapi.models import Response
+from sqlalchemy import text
+from sqlalchemy.testing import db
 from . import models
 from .database import engine, get_db
 from sqlalchemy.orm import Session
@@ -51,4 +53,35 @@ def get(id:int, db:Session = Depends(get_db)):
     else:
         return solo_post.first()
 
-#TODO : Docker + Swagger
+@app.get("/healthcheck")
+def healthcheck(db: Session = Depends(get_db)):
+    db_status = "down"
+    service_status = "down"
+    db_version = "Unknown"
+    try:
+        # Check DB connection
+        db.execute(text('SELECT 1'))
+        db_status = "up"
+
+        # Get DB version
+        result = db.execute(text('SELECT version()'))
+        db_version = result.first()[0] if result else "Unknown"
+
+        # If the above operations are successful, it means the service is up
+        service_status = "up"
+    except Exception as e:
+        pass
+
+    if service_status == "up" and db_status == "up":
+        return {
+            "service_status": "up",
+            "db_status": "up",
+            "db_version": db_version
+        }
+    else:
+        raise HTTPException(status_code = status.HTTP_500_INTERNAL_SERVER_ERROR, detail = {
+            "service_status": "up",
+            "db_status": "down",
+            "db_version": db_version
+        })
+#TODO : Docker
