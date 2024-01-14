@@ -4,4 +4,7 @@ class News(BaseModel):
     title: str
     body: str
     rating: int
-    author: str
+
+class UserBase(BaseModel):
+    username: str
+    password: str

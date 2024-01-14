@@ -1,18 +1,66 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.openapi.models import Response
 from sqlalchemy import text
-from sqlalchemy.testing import db
 from . import models
 from .database import engine, get_db
 from sqlalchemy.orm import Session
-from .schemas import News
+from .schemas import News, UserBase
 from starlette.responses import Response
+from .oauth2 import get_current_user, oauth2_scheme
+from passlib.context import CryptContext
+from jose import jwt
+from datetime import datetime, timedelta
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 models.Base.metadata.create_all(bind= engine)
 
+# Initialize password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Define your SECRET_KEY and ALGORITHM
+SECRET_KEY = os.getenv('SECRET_KEY')
+ALGORITHM = os.getenv('ALGORITHM')
+
+@app.post("/register")
+def register(user: UserBase, db: Session = Depends(get_db)):
+    existing_user = db.query(models.User).filter(models.User.username == user.username).first()
+    if existing_user:
+        return {"message": "User already exists."}
+    hashed_password = user.password  #pwd_context.hash(user.password) - to hash a password
+    new_user = models.User(username=user.username, hashed_password=hashed_password)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return {"message": "User created successfully."}
+
+@app.post("/login")
+def login(user: UserBase, db: Session = Depends(get_db)):
+    db_user = db.query(models.User).filter(models.User.username == user.username).first()
+    if not db_user : #or not pwd_context.verify(user.password, db_user.hashed_password) - to verify hashed password
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Create a payload dictionary
+    payload = {
+        "sub": str(db_user.id),  # subject
+        "iat": datetime.utcnow(),  # issued at
+        "exp": datetime.utcnow() + timedelta(minutes=15)  # expires at
+    }
+
+    # Generate a JWT token
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+    return {"access_token": token, "token_type": "?"}
+
 @app.post("/posts")
-def create(post: News, db: Session = Depends(get_db)):
+def create(post: News, db: Session = Depends(get_db), user: str = Depends(get_current_user)):
     new_post = models.Post(**post.dict())
     db.add(new_post)
     db.commit()
@@ -20,12 +68,12 @@ def create(post: News, db: Session = Depends(get_db)):
     return new_post
 
 @app.get("/posts")
-def get(db:Session = Depends(get_db)):
+def get(db:Session = Depends(get_db), user: str = Depends(get_current_user)):
     all_posts = db.query(models.Post).all()
     return all_posts
 
 @app.delete("/delete/{id}")
-def delete(id:int, db:Session = Depends(get_db)):
+def delete(id:int, db:Session = Depends(get_db), user: str = Depends(get_current_user)):
     delete_post = db.query(models.Post).filter(models.Post.id == id)
     if delete_post == None:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = f"Post with id {id} not found")
@@ -35,7 +83,7 @@ def delete(id:int, db:Session = Depends(get_db)):
     return Response(status_code = status.HTTP_200_OK)
 
 @app.put("/update/{id}")
-def update(id:int, post: News, db: Session = Depends(get_db)):
+def update(id:int, post: News, db: Session = Depends(get_db), user: str = Depends(get_current_user)):
     update_post = db.query(models.Post).filter(models.Post.id == id)
     update_post.first()
     if update_post == None:
@@ -46,7 +94,7 @@ def update(id:int, post: News, db: Session = Depends(get_db)):
     return update_post.first()
 
 @app.get("/get/{id}")
-def get(id:int, db:Session = Depends(get_db)):
+def get(id:int, db:Session = Depends(get_db), user: str = Depends(get_current_user)):
     solo_post = db.query(models.Post).filter(models.Post.id == id)
     if solo_post == None:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = f"Post with id {id} not found")
