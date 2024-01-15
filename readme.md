@@ -28,3 +28,11 @@ alembic downgrade %revision_num%
 OR
 alembic downgrade base - To revert all migrations
 ```
+## To execute calls:
+
+```
+Create a user in /register
+Register a user in /login
+Insert Token in to request as a Header in form :
+Authorization : Bearer Your_JWT_Token
+```
