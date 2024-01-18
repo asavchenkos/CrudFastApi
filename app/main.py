@@ -12,8 +12,24 @@ from jose import jwt
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
+import logging
+from logging.handlers import TimedRotatingFileHandler
 
 load_dotenv()
+
+# Create a logger
+logger = logging.getLogger("MyLogger")
+logger.setLevel(logging.INFO)
+
+# Create a TimedRotatingFileHandler
+handler = TimedRotatingFileHandler("my_log.log", when="midnight", backupCount=30)
+
+# Set the log format
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+
+# Add the handler to the logger
+logger.addHandler(handler)
 
 app = FastAPI()
 models.Base.metadata.create_all(bind= engine)
