@@ -36,3 +36,12 @@ Register a user in /login
 Insert Token in to request as a Header in form :
 Authorization : Bearer Your_JWT_Token
 ```
+
+## To use swagger:
+```
+go to /docs endpoint
+register a user
+login
+hit Authorize and pass bearer token
+```
+
