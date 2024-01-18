@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.openapi.models import Response
 from sqlalchemy import text
+from .logerconf import LoggingMiddleware
+
 from . import models
 from .database import engine, get_db
 from sqlalchemy.orm import Session
@@ -12,27 +14,15 @@ from jose import jwt
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
-import logging
-from logging.handlers import TimedRotatingFileHandler
+from .logger_config import logger
 
 load_dotenv()
 
-# Create a logger
-logger = logging.getLogger("MyLogger")
-logger.setLevel(logging.INFO)
-
-# Create a TimedRotatingFileHandler
-handler = TimedRotatingFileHandler("my_log.log", when="midnight", backupCount=30)
-
-# Set the log format
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-
-# Add the handler to the logger
-logger.addHandler(handler)
-
 app = FastAPI()
 models.Base.metadata.create_all(bind= engine)
+
+# Add the middleware to the FastAPI application
+app.add_middleware(LoggingMiddleware)
 
 # Initialize password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -45,12 +35,14 @@ ALGORITHM = os.getenv('ALGORITHM')
 def register(user: UserBase, db: Session = Depends(get_db)):
     existing_user = db.query(models.User).filter(models.User.username == user.username).first()
     if existing_user:
+        logger.info(f"Attempt to register an existing user: {user.username}")
         return {"message": "User already exists."}
     hashed_password = user.password  #pwd_context.hash(user.password) - to hash a password
     new_user = models.User(username=user.username, hashed_password=hashed_password)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+    logger.info(f"New user registered: {user.username}")
     return {"message": "User created successfully."}
 
 @app.post("/login")
