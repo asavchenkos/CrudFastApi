@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.openapi.models import Response
 from sqlalchemy import text
-from .logerconf import LoggingMiddleware
+
 
 from . import models
 from .database import engine, get_db
@@ -14,7 +14,7 @@ from jose import jwt
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
-from .logger_config import logger
+from .logger_config import logger, LoggingMiddleware
 
 load_dotenv()
 
