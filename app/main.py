@@ -1,22 +1,24 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.openapi.models import Response
 from sqlalchemy import text
+import uvicorn
 
-
-from . import models
-from .database import engine, get_db
+from app import models
+from app.database import engine, get_db
 from sqlalchemy.orm import Session
-from .schemas import News, UserBase
+from app.schemas import News, UserBase
 from starlette.responses import Response
-from .oauth2 import get_current_user, oauth2_scheme
+from app.oauth2 import get_current_user, oauth2_scheme
 from passlib.context import CryptContext
 from jose import jwt
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
-from .logger_config import logger, LoggingMiddleware
+from app.logger_config import logger, LoggingMiddleware
+
 
 load_dotenv()
+
 
 app = FastAPI()
 models.Base.metadata.create_all(bind= engine)
@@ -141,5 +143,8 @@ def healthcheck(db: Session = Depends(get_db)):
             "db_version": db_version
         })
 
+
+if __name__ == "__main__":
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
 
 #TODO : Docker

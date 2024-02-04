@@ -4,8 +4,9 @@ pydantic~=2.5.3
 python-dotenv~=1.0.0
 starlette~=0.32.0.post1
 alembic~=1.13.1
-psycopg2
+psycopg2-binary
 python-jose[cryptography]
 passlib~=1.7.4
 python-multipart
 bcrypt
+uvicorn

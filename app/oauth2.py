@@ -4,8 +4,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional
 import os
 from dotenv import load_dotenv
-from . import models
-from .database import get_db
+from app import models
+from app.database import get_db
 from sqlalchemy.orm import Session
 
 load_dotenv()
