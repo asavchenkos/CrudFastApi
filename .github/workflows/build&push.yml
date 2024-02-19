@@ -18,7 +18,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Extract tag version
-        run: echo "VERSION=${GITHUB_REF##*/}"
+        run: echo "VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
       - name: Build and push image
         uses: docker/build-push-action@v2
