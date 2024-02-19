@@ -24,6 +24,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/your-image-name:${{ env.VERSION }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/fast_api_nginx:${{ env.VERSION }}
           context: .
           file: Dockerfile
