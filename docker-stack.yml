@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  fastapicrud:
+    image: rahowa/fast_api_nginx:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://android2:admin@db:5432/blog
+      - SECRET_KEY=ANDROID
+      - ALGORITHM=HS256
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  db:
+    image: postgres:latest
+    container_name: postgresql
+    environment:
+      POSTGRES_USER: android2
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: blog
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@example.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+volumes:
+  postgres_data:
