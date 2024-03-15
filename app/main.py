@@ -15,12 +15,13 @@ from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
 from app.logger_config import logger, LoggingMiddleware
-
+from prometheus_fastapi_instrumentator import Instrumentator
 
 load_dotenv()
 
 
 app = FastAPI()
+Instrumentator().instrument(app).expose(app)
 models.Base.metadata.create_all(bind= engine)
 
 # Add the middleware to the FastAPI application
