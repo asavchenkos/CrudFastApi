@@ -44,4 +44,4 @@ register a user
 login
 hit Authorize and pass bearer token
 ```
-test
+
